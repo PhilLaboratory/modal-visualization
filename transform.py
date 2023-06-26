@@ -22,7 +22,8 @@ for path in path_list:
     norming_df = pd.DataFrame()
     norming_path = path + '/norming'
     
-    if len(os.listdir(norming_path)) == 0:
+    if os.path.exists(norming_path):
+    #if len(os.listdir(norming_path)) == 0:
        print('There is no norming data in ' + path)  
     else:
        norming_path = glob.glob(norming_path + '/*.csv')
