@@ -21,14 +21,15 @@ for path in path_list:
     # norming data
     norming_df = pd.DataFrame()
     norming_path = path + '/norming'
+    all_judgments = ['morally wrong', 'irrational would', 'irrational is', 'likely',
+             'improbable', 'immoral', 'abnormal',
+             'good of an idea']
     
-    if os.path.exists(norming_path):
-    #if len(os.listdir(norming_path)) == 0:
+    if (not os.path.exists(norming_path)) or (len(os.listdir(norming_path)) == 0):
        print('There is no norming data in ' + path)  
     else:
        norming_path = glob.glob(norming_path + '/*.csv')
-       judgments = ['moral', 'rational', 'likely']            ## to be automated
-       norming_df = get_norming(norming_path[0], judgments)
+       norming_df = get_norming(norming_path[0], all_judgments)
 
 
     # modal judgment data
@@ -60,9 +61,9 @@ for path in path_list:
     main['condition2'] = main['condition2'].astype(int)
 
     
-    """ #sanity check
-    print("finish transforming current dataset" + path)
-    print(main.shape) """
+    #sanity check
+    print("finish transforming current dataset- " + path)
+    print(main.shape)
 
     # combine multiple studies
     if len(combined_df) == 0:
@@ -74,6 +75,15 @@ for path in path_list:
 combined_df['trialNo'] = combined_df['trialNo'].astype(int)
 combined_df['condition2'] = combined_df['condition2'].astype(int)
 combined_df = combined_df.sort_values(by=['condition2', 'trialNo'])
+
+# reorder columns
+cols = combined_df.columns.tolist()
+sorted_cols = sorted(cols, key=lambda x: (not x.startswith('condition2'),
+                                          not x.startswith('trialNo'),
+                                          not x.startswith('target'),
+                                          not x.startswith('condition1'),
+                                          not x.startswith('mRating')))
+combined_df = combined_df[sorted_cols]
 
 #export combined data as csv
 combined_df.to_csv(output_path, index=False)

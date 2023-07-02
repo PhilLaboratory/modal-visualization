@@ -118,14 +118,22 @@ def get_response_rt(dataframes):
 
   #return result
 
-# a more automated version:
+# a more automated version (6.27 update):
 def norming_transformation_2(dataframe, values):
 
+    dataframe = dataframe.dropna(subset=['target'])
+
+    # label judgment type for each response
     for value in values:
       dataframe[value] = dataframe.target.str.contains(value).astype(int)
     dataframe['judgment'] = dataframe[values].idxmax(axis=1)
     dataframe['judgment'] = 'mRating_' + dataframe['judgment']
-    
+
+    # discard 'not applicable' responses
+    dataframe['response'] = dataframe['response'].astype(int)
+    dataframe = dataframe[dataframe['response'] != 6]
+
+
     result = dataframe >> group_by(X.trialNo, X.judgment) \
         >> summarize(meanresponse=mean(X.response)) \
         >> select(X.trialNo, X.judgment, X.meanresponse) \
@@ -133,15 +141,38 @@ def norming_transformation_2(dataframe, values):
 
     result['trialNo'] = result['trialNo'].astype(int)
 
-    if 'mRating_good of an idea' in result.columns:
+    # standardize column names and values
+    if 'mRating_good of an idea' in result.columns: # for dataset 4+
       result = result.rename(columns={'mRating_good of an idea': 'mRating_goodness'})
+
+    if 'mRating_morally wrong' in result.columns: # for dataset 1
+      result = result.rename(columns={'mRating_morally wrong': 'mRating_immoral'})
+      result['mRating_immoral'] = 6 - result['mRating_immoral']
+
+    if 'mRating_likely' in result.columns: # for dataset 1
+      result = result.rename(columns={'mRating_likely': 'mRating_improbable'})
+
+    if 'mRating_irrational would' in result.columns: # for dataset 1
+      result = result.rename(columns={'mRating_irrational would': 'mRating_irrational'})
+      result['mRating_irrational'] = 6 - result['mRating_irrational']
+
+    if 'mRating_irrational is' in result.columns: # for dataset 3
+      result = result.rename(columns={'mRating_irrational is': 'mRating_irrational'})
 
     return result
 
-def get_norming(path, judgments):
+def get_norming(path, all_judgments):
+
+  all_judgments = all_judgments
   data = pd.read_csv(path)
-  judgments = judgments
+  judgments = []
+
+  for item in all_judgments:
+    if data['target'].str.contains(item).any():
+      judgments.append(item)
+
   result = norming_transformation_2(rename_vars(data), judgments)
+
   return result
 
 
