@@ -9,9 +9,13 @@ import os
 
 path_list = ['data/dataset1',
              'data/dataset2',
-             'data/dataset3']
+             'data/dataset3',
+             'data/dataset4']
 
-output_path = 'combinedData.csv'
+norming = True
+modal = True
+
+output_path = 'combinedData_240227.csv'
 
 combined_df = pd.DataFrame()
 
@@ -35,8 +39,9 @@ for path in path_list:
     # modal judgment data
     modal_path = path + '/modal_judgment'
 
-    if len(os.listdir(modal_path)) == 0:
+    if (not os.path.exists(modal_path)) or len(os.listdir(modal_path)) == 0:
         print('There is no modal judgment data in ' + path)
+        modal = False
     else:
         # read modal data as dictionary
         modal_data = read_csv_folder(modal_path)
@@ -49,12 +54,17 @@ for path in path_list:
         response_rt = get_response_rt(modal_data)
 
     # combine data within study
-    if len(norming_df)==0:
-        main = event_list
+    if modal == True:
+        if len(norming_df)==0:
+            main = event_list
+        else:
+            main = pd.merge(event_list, norming_df, on='trialNo', how='left')
+    
+        main = joinfunc_multi(main, list(response_rt.values())) #add response and rt
+
     else:
-        main = pd.merge(event_list, norming_df, on='trialNo', how='left')
-  
-    main = joinfunc_multi(main, list(response_rt.values())) #add response and rt
+        main = norming_df
+        main['condition2'] = 99
     
 
     main['trialNo'] = main['trialNo'].astype(int)

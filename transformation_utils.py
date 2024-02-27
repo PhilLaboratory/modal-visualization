@@ -176,9 +176,9 @@ def get_norming(path, all_judgments):
   return result
 
 
-# Get event list
+# Get event list (updated on 2/27/24)
 def get_event_list(dataframe):
-  result = dataframe[['trialNo', 'target','condition1', 'condition2']].drop_duplicates().dropna().sort_values('trialNo')
+  result = dataframe[['trialNo', 'target','condition1', 'condition2']].drop_duplicates(subset=['trialNo']).dropna().sort_values('trialNo')
   result['trialNo'] = result['trialNo'].astype(str)
   result = result[~result['trialNo'].str.contains('na')]
   result['trialNo'] = result['trialNo'].astype(float).astype(int)
