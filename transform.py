@@ -15,7 +15,7 @@ path_list = ['data/dataset1',
 norming = True
 modal = True
 
-output_path = 'combinedData_240227.csv'
+output_path = 'combinedData_240411.csv'
 
 combined_df = pd.DataFrame()
 
